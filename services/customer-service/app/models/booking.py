@@ -1,46 +1,60 @@
-import uuid
 
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, MetaData, Numeric, Table, Text
+import uuid
+from sqlalchemy import (
+    Column,
+    DateTime,
+    Integer,
+    Numeric,
+    Text
+)
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.sql import func
-
 from shared.database.postgres import Base
-
-
-# Reference metadata is separate so create_all cannot create incomplete external tables.
-reference_metadata = MetaData()
-profiles = Table("profiles", reference_metadata, Column("id", UUID(as_uuid=True), primary_key=True))
-engineers = Table("engineers", reference_metadata, Column("id", UUID(as_uuid=True), primary_key=True))
-
-
 class Booking(Base):
+
     __tablename__ = "bookings"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    ticket_no = Column(Text, nullable=False, unique=True)
-    user_id = Column(UUID(as_uuid=True), ForeignKey(profiles.c.id))
-    customer_name = Column(Text)
-    service_slug = Column(Text)
-    title = Column(Text)
-    priority = Column(Text)
-    city = Column(Text)
-    site_address = Column(Text)
-    engineer_id = Column(UUID(as_uuid=True), ForeignKey(engineers.c.id))
-    engineer_name = Column(Text)
-    engineer_phone = Column(Text)
-    progress = Column(Integer, default=0)
-    status = Column(Text)
-    total = Column(Numeric(12, 2))
-    details = Column(JSONB)
-    last_contact = Column(Text)
-    customer_rating = Column(Integer)
-    customer_feedback = Column(Text)
-    started_at = Column(DateTime(timezone=True))
-    completed_at = Column(DateTime(timezone=True))
-    payment_status = Column(Text)
-    amount_paid = Column(Numeric(12, 2))
-    invoice_no = Column(Text)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
-    created_by = Column(UUID(as_uuid=True))
-    updated_by = Column(UUID(as_uuid=True))
+    # Primary key
+    id = Column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4
+    )
+
+    # Booking information
+    ticket_no = Column(Text, unique=True, nullable=False)
+    user_id = Column(UUID(as_uuid=True), nullable=True)
+    customer_name = Column(Text, nullable=True)
+    service_slug = Column(Text,nullable=False,default="field-engineer-support")
+    title = Column(Text, nullable=False)
+    priority = Column(Text,nullable=False,default="Medium")
+    city = Column(Text, nullable=True)
+    site_address = Column(Text, nullable=True)
+    engineer_id = Column(UUID(as_uuid=True), nullable=True)
+    engineer_name = Column(Text,nullable=False,default="Unassigned")
+    engineer_phone = Column(Text, nullable=True)
+    progress = Column(Integer, default=12, nullable=False)
+    status = Column(Text,nullable=False,default="Open")
+    total = Column(Numeric(12, 2), nullable=True)
+    amount_paid = Column(Numeric(12, 2), nullable=True)
+    payment_status = Column(Text, nullable=True)
+    invoice_no = Column(Text, nullable=True)
+    details = Column(JSONB,nullable=False,default=dict)
+    last_contact = Column(Text, nullable=True)
+    customer_rating = Column(Integer, nullable=True)
+    customer_feedback = Column(Text, nullable=True)
+    started_at = Column(DateTime(timezone=True), nullable=True)
+    completed_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(DateTime(timezone=True),server_default=func.now(),nullable=False)
+
+    updated_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False
+    )
+
+    # Audit information
+    created_by = Column(UUID(as_uuid=True), nullable=True)
+
+    updated_by = Column(UUID(as_uuid=True), nullable=True)
